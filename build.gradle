@@ -1,0 +1,101 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.flywaydb:flyway-mysql:${flywayVersion}"
+        classpath "com.mysql:mysql-connector-j:${mysqlVersion}"
+    }
+}
+
+plugins {
+    id 'groovy'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'org.flywaydb.flyway'
+}
+
+group = 'br.com.erudio'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://jaspersoft.jfrog.io/jaspersoft/third-party-ce-artifacts/'
+        content {
+            includeGroup 'com.github.librepdf'
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.apache.groovy:groovy'
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation "com.auth0:java-jwt:${javaJwtVersion}"
+
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+    implementation 'tools.jackson.dataformat:jackson-dataformat-xml'
+    implementation 'tools.jackson.dataformat:jackson-dataformat-yaml'
+    implementation "org.apache.commons:commons-csv:${commonsCsvVersion}"
+    implementation "org.apache.poi:poi-ooxml:${apachePoiVersion}"
+    implementation "net.sf.jasperreports:jasperreports:${jasperreportsVersion}"
+    implementation "net.sf.jasperreports:jasperreports-fonts:${jasperreportsVersion}"
+    implementation "net.sf.jasperreports:jasperreports-pdf:${jasperreportsVersion}"
+    implementation "net.sf.jasperreports:jasperreports-jdt:${jasperreportsVersion}"
+    implementation "com.google.zxing:core:${zxingVersion}"
+    implementation "com.google.zxing:javase:${zxingVersion}"
+
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.flywaydb:flyway-mysql'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation "org.spockframework:spock-core:${spockVersion}"
+    testImplementation "org.spockframework:spock-spring:${spockVersion}"
+    testImplementation 'net.bytebuddy:byte-buddy'
+    testImplementation "org.objenesis:objenesis:${objenesisVersion}"
+    testImplementation 'org.testcontainers:testcontainers-mysql'
+    testImplementation("com.icegreen:greenmail:${greenmailVersion}") {
+        exclude group: 'org.eclipse.angus', module: 'jakarta.mail'
+    }
+    testImplementation "io.rest-assured:rest-assured:${restAssuredVersion}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('jar') {
+    enabled = false
+}
+
+tasks.withType(GroovyCompile).configureEach {
+    options.encoding = 'UTF-8'
+    groovyOptions.parameters = true
+}
+
+tasks.named('compileGroovy') {
+    groovyOptions.configurationScript = file('gradle/compiler-config.groovy')
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}
+
+flyway {
+    url = 'jdbc:mysql://localhost:3306/rest_with_spring_boot_erudio?useTimezone=true&serverTimezone=UTC'
+    user = 'root'
+    password = 'admin123'
+}

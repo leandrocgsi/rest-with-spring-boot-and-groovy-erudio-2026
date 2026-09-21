@@ -1,0 +1,9 @@
+pluginManagement {
+    plugins {
+        id 'org.springframework.boot' version "${springBootVersion}"
+        id 'io.spring.dependency-management' version "${dependencyManagementVersion}"
+        id 'org.flywaydb.flyway' version "${flywayVersion}"
+    }
+}
+
+rootProject.name = 'rest-with-spring-boot-and-groovy-erudio'
