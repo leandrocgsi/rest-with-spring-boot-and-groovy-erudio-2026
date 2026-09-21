@@ -1,6 +1,7 @@
 package br.com.erudio.controllers
 
 import br.com.erudio.controllers.docs.AuthControllerDocs
+import br.com.erudio.controllers.mapping.ApiPost
 import br.com.erudio.data.dto.security.AccountCredentialsDTO
 import br.com.erudio.services.AuthService
 import groovy.transform.TupleConstructor
@@ -14,10 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE
-import static org.springframework.http.MediaType.APPLICATION_YAML_VALUE
 
 @Tag(name = 'Authentication Endpoint!')
 @RestController
@@ -45,9 +42,7 @@ class AuthController implements AuthControllerDocs {
         service.refreshToken(username, refreshToken) ?: forbidden()
     }
 
-    @PostMapping(value = '/createUser',
-        consumes = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE],
-        produces = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE])
+    @ApiPost('/createUser')
     @Override
     AccountCredentialsDTO create(@RequestBody AccountCredentialsDTO credentials) {
         service.create(credentials)

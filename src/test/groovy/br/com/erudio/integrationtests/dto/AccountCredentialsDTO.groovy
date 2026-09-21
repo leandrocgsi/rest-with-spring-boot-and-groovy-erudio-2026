@@ -10,7 +10,7 @@ import jakarta.xml.bind.annotation.XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @TupleConstructor
 @EqualsAndHashCode
-class AccountCredentialsDTO implements Serializable {
+class AccountCredentialsDTO {
 
     String username
     String password

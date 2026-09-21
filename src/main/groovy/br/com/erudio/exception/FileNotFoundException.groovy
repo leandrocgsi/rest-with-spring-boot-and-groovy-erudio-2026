@@ -6,11 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class FileNotFoundException extends RuntimeException {
 
-    FileNotFoundException(String message) {
-        super(message)
-    }
-
-    FileNotFoundException(String message, Throwable cause) {
+    FileNotFoundException(String message, Throwable cause = null) {
         super(message, cause)
     }
 }

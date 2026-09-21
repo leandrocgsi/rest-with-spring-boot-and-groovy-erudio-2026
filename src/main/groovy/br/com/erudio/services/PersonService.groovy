@@ -128,7 +128,7 @@ class PersonService {
         findEntity(id)
         repository.disablePerson(id)
 
-        toDto(repository.findById(id).get())
+        toDto(findEntity(id))
     }
 
     void delete(Long id) {

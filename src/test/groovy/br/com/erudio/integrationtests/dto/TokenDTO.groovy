@@ -10,7 +10,7 @@ import jakarta.xml.bind.annotation.XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @TupleConstructor
 @EqualsAndHashCode
-class TokenDTO implements Serializable {
+class TokenDTO {
 
     String username
     Boolean authenticated

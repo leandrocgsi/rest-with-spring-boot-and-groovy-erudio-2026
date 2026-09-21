@@ -4,7 +4,6 @@ import br.com.erudio.controllers.docs.EmailControllerDocs
 import br.com.erudio.data.dto.request.EmailRequestDTO
 import br.com.erudio.services.EmailService
 import groovy.transform.TupleConstructor
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -25,7 +24,7 @@ class EmailController implements EmailControllerDocs {
     @Override
     ResponseEntity<String> sendEmail(@RequestBody EmailRequestDTO emailRequest) {
         service.sendSimpleEmail(emailRequest)
-        new ResponseEntity<>('e-Mail sent with success!', HttpStatus.OK)
+        ResponseEntity.ok('e-Mail sent with success!')
     }
 
     @PostMapping(value = '/withAttachment', consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -33,7 +32,7 @@ class EmailController implements EmailControllerDocs {
     ResponseEntity<String> sendEmailWithAttachment(
             @RequestParam('emailRequest') String emailRequest,
             @RequestParam('attachment') MultipartFile attachment) {
-        service.setEmailWithAttachment(emailRequest, attachment)
-        new ResponseEntity<>('e-Mail with attachment sent successfully!', HttpStatus.OK)
+        service.sendEmailWithAttachment(emailRequest, attachment)
+        ResponseEntity.ok('e-Mail with attachment sent successfully!')
     }
 }

@@ -15,7 +15,7 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = 'person')
 @EqualsAndHashCode
-class Person implements Serializable {
+class Person {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

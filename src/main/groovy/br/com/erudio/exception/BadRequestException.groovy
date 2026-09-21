@@ -6,11 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 class BadRequestException extends RuntimeException {
 
-    BadRequestException() {
-        super('Unsupported file extension!')
-    }
-
-    BadRequestException(String message) {
+    BadRequestException(String message = 'Unsupported file extension!') {
         super(message)
     }
 }

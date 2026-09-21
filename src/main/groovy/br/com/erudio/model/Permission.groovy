@@ -12,7 +12,7 @@ import org.springframework.security.core.GrantedAuthority
 @Entity
 @Table(name = 'permission')
 @EqualsAndHashCode
-class Permission implements GrantedAuthority, Serializable {
+class Permission implements GrantedAuthority {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

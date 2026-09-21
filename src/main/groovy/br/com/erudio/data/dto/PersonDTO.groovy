@@ -8,7 +8,7 @@ import org.springframework.hateoas.server.core.Relation
 
 @Relation(collectionRelation = 'people')
 @EqualsAndHashCode(callSuper = true)
-class PersonDTO extends RepresentationModel<PersonDTO> implements Serializable {
+class PersonDTO extends RepresentationModel<PersonDTO> {
 
     Long id
     String firstName

@@ -13,7 +13,7 @@ import java.time.LocalDate
 @Entity
 @Table(name = 'books')
 @EqualsAndHashCode
-class Book implements Serializable {
+class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

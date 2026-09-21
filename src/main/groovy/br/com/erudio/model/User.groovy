@@ -17,7 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails
 @Entity
 @Table(name = 'users')
 @EqualsAndHashCode
-class User implements UserDetails, Serializable {
+class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

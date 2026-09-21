@@ -8,7 +8,7 @@ import java.time.LocalDate
 
 @Relation(collectionRelation = 'books')
 @EqualsAndHashCode(callSuper = false)
-class BookDTO extends RepresentationModel<BookDTO> implements Serializable {
+class BookDTO extends RepresentationModel<BookDTO> {
 
     Long id
     String author

@@ -8,7 +8,7 @@ import jakarta.xml.bind.annotation.XmlRootElement
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-class PagedModelPerson implements Serializable {
+class PagedModelPerson {
 
     @XmlElement(name = 'content')
     List<PersonDTO> content

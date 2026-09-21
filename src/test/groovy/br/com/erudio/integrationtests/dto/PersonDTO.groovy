@@ -10,7 +10,7 @@ import jakarta.xml.bind.annotation.XmlTransient
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @EqualsAndHashCode
-class PersonDTO implements Serializable {
+class PersonDTO {
 
     Long id
     String firstName

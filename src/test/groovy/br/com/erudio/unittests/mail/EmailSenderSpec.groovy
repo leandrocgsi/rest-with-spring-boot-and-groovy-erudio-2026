@@ -1,6 +1,7 @@
 package br.com.erudio.unittests.mail
 
 import br.com.erudio.config.EmailConfig
+import br.com.erudio.mail.EmailMessage
 import br.com.erudio.mail.EmailSender
 import br.com.erudio.testsupport.MailContent
 import jakarta.mail.Message
@@ -14,6 +15,8 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 
 import static java.nio.charset.StandardCharsets.UTF_8
 
@@ -26,8 +29,8 @@ class EmailSenderSpec extends Specification {
 
     JavaMailSender mailSender = Mock()
     EmailConfig config = new EmailConfig(username: SENDER)
-    EmailSender sender = new EmailSender(mailSender)
-    List<MimeMessage> sent = []
+    EmailSender sender = new EmailSender(mailSender, config)
+    List<MimeMessage> sent = Collections.synchronizedList([])
 
     def setup() {
         def session = Session.getInstance(new Properties())
@@ -37,7 +40,7 @@ class EmailSenderSpec extends Specification {
 
     def 'sends an HTML message from the configured account'() {
         when:
-        sender.to('ada@erudio.test').withSubject('Welcome').withMessage('<h1>Hello Ada</h1>').send(config)
+        sender.send(new EmailMessage(to: 'ada@erudio.test', subject: 'Welcome', body: '<h1>Hello Ada</h1>'))
 
         then:
         def message = sentMessage()
@@ -49,10 +52,7 @@ class EmailSenderSpec extends Specification {
 
     def 'sends to several recipients separated by semicolon ignoring spaces'() {
         when:
-        sender.to('ada@erudio.test; bob@erudio.test ;carol@erudio.test')
-            .withSubject('Team')
-            .withMessage('Hi all')
-            .send(config)
+        sender.send(new EmailMessage(to: 'ada@erudio.test; bob@erudio.test ;carol@erudio.test', subject: 'Team', body: 'Hi all'))
 
         then:
         addressesOf(sentMessage().getRecipients(Message.RecipientType.TO)) ==
@@ -64,9 +64,7 @@ class EmailSenderSpec extends Specification {
         def file = Files.writeString(tempDir.resolve('report.csv'), 'id,name\n1,Ada\n', UTF_8)
 
         when:
-        sender.to('ada@erudio.test').withSubject('Report').withMessage('See attachment')
-            .attach(file.toString())
-            .send(config)
+        sender.send(new EmailMessage(to: 'ada@erudio.test', subject: 'Report', body: 'See attachment', attachment: file.toFile()))
 
         then:
         def content = MailContent.of(sentMessage())
@@ -80,9 +78,9 @@ class EmailSenderSpec extends Specification {
         def temporary = Files.writeString(tempDir.resolve('attachment8291746352report.csv'), 'id\n1\n', UTF_8)
 
         when:
-        sender.to('ada@erudio.test').withSubject('Report').withMessage('See attachment')
-            .attach(temporary.toString(), 'Monthly report.csv')
-            .send(config)
+        sender.send(new EmailMessage(
+            to: 'ada@erudio.test', subject: 'Report', body: 'See attachment',
+            attachment: temporary.toFile(), attachmentName: 'Monthly report.csv'))
 
         then:
         def content = MailContent.of(sentMessage())
@@ -95,9 +93,9 @@ class EmailSenderSpec extends Specification {
         def file = Files.writeString(tempDir.resolve('data.txt'), 'x', UTF_8)
 
         when:
-        sender.to('ada@erudio.test').withSubject('Data').withMessage('See attachment')
-            .attach(file.toString(), '  ')
-            .send(config)
+        sender.send(new EmailMessage(
+            to: 'ada@erudio.test', subject: 'Data', body: 'See attachment',
+            attachment: file.toFile(), attachmentName: '  '))
 
         then:
         MailContent.of(sentMessage()).attachments().keySet().toList() == ['data.txt']
@@ -105,7 +103,7 @@ class EmailSenderSpec extends Specification {
 
     def 'sends no attachment when none was given'() {
         when:
-        sender.to('ada@erudio.test').withSubject('Plain').withMessage('No files').send(config)
+        sender.send(new EmailMessage(to: 'ada@erudio.test', subject: 'Plain', body: 'No files'))
 
         then:
         MailContent.of(sentMessage()).attachments().isEmpty()
@@ -113,7 +111,7 @@ class EmailSenderSpec extends Specification {
 
     def 'keeps the accents of the subject and the body'() {
         when:
-        sender.to('ada@erudio.test').withSubject('Formação Spring Boot').withMessage('<p>Olá, João!</p>').send(config)
+        sender.send(new EmailMessage(to: 'ada@erudio.test', subject: 'Formação Spring Boot', body: '<p>Olá, João!</p>'))
 
         then:
         def message = sentMessage()
@@ -121,18 +119,49 @@ class EmailSenderSpec extends Specification {
         MailContent.of(message).html() == '<p>Olá, João!</p>'
     }
 
-    def 'can be reused for another message after a send'() {
+    def 'one message does not leak into the next one'() {
+        given:
+        def file = Files.writeString(tempDir.resolve('first.txt'), 'first', UTF_8)
+
         when:
-        sender.to('ada@erudio.test').withSubject('First').withMessage('1').send(config)
-        sender.to('bob@erudio.test').withSubject('Second').withMessage('2').send(config)
+        sender.send(new EmailMessage(to: 'ada@erudio.test', subject: 'First', body: '1', attachment: file.toFile()))
+        sender.send(new EmailMessage(to: 'bob@erudio.test', subject: 'Second', body: '2'))
 
         then:
-        sent*.subject == ['First', 'Second']
+        sent.size() == 2
+        def first = saved(sent[0])
+        def second = saved(sent[1])
+        [first.subject, second.subject] == ['First', 'Second']
+        !MailContent.of(first).attachments().isEmpty()
+        MailContent.of(second).attachments().isEmpty()
+        addressesOf(second.getRecipients(Message.RecipientType.TO)) == ['bob@erudio.test']
+    }
+
+    def 'is safe to use from several threads at the same time'() {
+        when:
+        Executors.newFixedThreadPool(8).withCloseable { pool ->
+            (1..40)
+                .collect { int index ->
+                    pool.submit({
+                        sender.send(new EmailMessage(to: "user$index@erudio.test", subject: "Subject $index", body: "Body $index"))
+                    } as Callable)
+                }
+                .each { it.get() }
+        }
+
+        then:
+        sent.size() == 40
+        sent.every { MimeMessage message ->
+            saved(message)
+            def index = message.subject.substring('Subject '.length())
+            addressesOf(message.getRecipients(Message.RecipientType.TO)) == ["user$index@erudio.test".toString()] &&
+                MailContent.of(message).html() == "Body $index"
+        }
     }
 
     def 'rejects an invalid recipient address'() {
         when:
-        sender.to('not-an-address@@')
+        sender.send(new EmailMessage(to: 'not-an-address@@', subject: 'x', body: 'y'))
 
         then:
         def e = thrown(RuntimeException)
@@ -148,7 +177,7 @@ class EmailSenderSpec extends Specification {
         }
 
         when:
-        new EmailSender(failing).to('ada@erudio.test').withSubject('Down').withMessage('x').send(config)
+        new EmailSender(failing, config).send(new EmailMessage(to: 'ada@erudio.test', subject: 'Down', body: 'x'))
 
         then:
         def e = thrown(MailSendException)
@@ -157,7 +186,10 @@ class EmailSenderSpec extends Specification {
 
     private MimeMessage sentMessage() {
         assert sent.size() == 1
-        def message = sent.first()
+        saved(sent.first())
+    }
+
+    private static MimeMessage saved(MimeMessage message) {
         message.saveChanges()
         message
     }

@@ -1,16 +1,9 @@
 package br.com.erudio.data.dto
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.TupleConstructor
+import com.fasterxml.jackson.annotation.JsonProperty
 
-@JsonPropertyOrder(['fileName', 'fileDownloadUri', 'fileType', 'size'])
-@TupleConstructor
-@EqualsAndHashCode
-class UploadFileResponseDTO implements Serializable {
-
-    String fileName
-    String fileDownloadUri
-    String fileType
-    long size
-}
+record UploadFileResponseDTO(
+        String fileName,
+        String fileDownloadUri,
+        String fileType,
+        @JsonProperty('size') long fileSize) {}

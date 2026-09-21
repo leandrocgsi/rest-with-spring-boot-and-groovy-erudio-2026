@@ -1,11 +1,10 @@
 package br.com.erudio.unittests.services
 
-import br.com.erudio.config.EmailConfig
 import br.com.erudio.config.EmailDefaultsConfig
 import br.com.erudio.data.dto.request.EmailRequestDTO
+import br.com.erudio.mail.EmailMessage
 import br.com.erudio.mail.EmailSender
 import br.com.erudio.services.EmailService
-import br.com.erudio.testsupport.ReturnsSelf
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.web.multipart.MultipartFile
 import spock.lang.Specification
@@ -20,22 +19,23 @@ class EmailServiceSpec extends Specification {
     static final String DEFAULT_SUBJECT = 'Default Subject'
     static final String DEFAULT_MESSAGE = 'Default Message'
 
-    EmailSender emailSender = Mock(defaultResponse: new ReturnsSelf())
-    EmailConfig emailConfig = new EmailConfig()
+    EmailSender emailSender = Mock()
     EmailDefaultsConfig defaults = new EmailDefaultsConfig(subject: DEFAULT_SUBJECT, message: DEFAULT_MESSAGE)
 
-    EmailService service = new EmailService(emailSender, emailConfig, defaults)
+    EmailService service = new EmailService(emailSender, defaults)
 
-    def 'sendSimpleEmail uses the subject and body of the request'() {
+    def 'sendSimpleEmail uses the recipient, subject and body of the request'() {
         when:
         service.sendSimpleEmail(request('ada@erudio.test', 'Welcome', '<p>Hello Ada</p>'))
 
         then:
-        1 * emailSender.to('ada@erudio.test')
-        1 * emailSender.withSubject('Welcome')
-        1 * emailSender.withMessage('<p>Hello Ada</p>')
-        1 * emailSender.send(emailConfig)
-        0 * emailSender.attach(*_)
+        1 * emailSender.send({ EmailMessage message ->
+            message.to == 'ada@erudio.test' &&
+                message.subject == 'Welcome' &&
+                message.body == '<p>Hello Ada</p>' &&
+                message.attachment == null &&
+                message.attachmentName == null
+        })
     }
 
     def 'sendSimpleEmail sends the body as the message, not the subject'() {
@@ -43,8 +43,9 @@ class EmailServiceSpec extends Specification {
         service.sendSimpleEmail(request('ada@erudio.test', 'Just the subject', 'The real body'))
 
         then:
-        1 * emailSender.withMessage('The real body')
-        0 * emailSender.withMessage('Just the subject')
+        1 * emailSender.send({ EmailMessage message ->
+            message.body == 'The real body' && message.subject == 'Just the subject'
+        })
     }
 
     def 'sendSimpleEmail keeps any subject and body the caller sets'() {
@@ -52,8 +53,9 @@ class EmailServiceSpec extends Specification {
         service.sendSimpleEmail(request('ada@erudio.test', "$DEFAULT_SUBJECT (custom)", "$DEFAULT_MESSAGE (custom)"))
 
         then:
-        1 * emailSender.withSubject("$DEFAULT_SUBJECT (custom)")
-        1 * emailSender.withMessage("$DEFAULT_MESSAGE (custom)")
+        1 * emailSender.send({ EmailMessage message ->
+            message.subject == "$DEFAULT_SUBJECT (custom)" && message.body == "$DEFAULT_MESSAGE (custom)"
+        })
     }
 
     def 'sendSimpleEmail falls back to the defaults only when nothing was informed'() {
@@ -61,9 +63,9 @@ class EmailServiceSpec extends Specification {
         service.sendSimpleEmail(request('ada@erudio.test', null, null))
 
         then:
-        1 * emailSender.withSubject(DEFAULT_SUBJECT)
-        1 * emailSender.withMessage(DEFAULT_MESSAGE)
-        1 * emailSender.send(emailConfig)
+        1 * emailSender.send({ EmailMessage message ->
+            message.subject == DEFAULT_SUBJECT && message.body == DEFAULT_MESSAGE
+        })
     }
 
     def 'sendSimpleEmail treats blank values as missing'() {
@@ -71,8 +73,9 @@ class EmailServiceSpec extends Specification {
         service.sendSimpleEmail(request('ada@erudio.test', '   ', ''))
 
         then:
-        1 * emailSender.withSubject(DEFAULT_SUBJECT)
-        1 * emailSender.withMessage(DEFAULT_MESSAGE)
+        1 * emailSender.send({ EmailMessage message ->
+            message.subject == DEFAULT_SUBJECT && message.body == DEFAULT_MESSAGE
+        })
     }
 
     def 'sendSimpleEmail defaults each field independently (#subject / #body)'() {
@@ -80,8 +83,9 @@ class EmailServiceSpec extends Specification {
         service.sendSimpleEmail(request('ada@erudio.test', subject, body))
 
         then:
-        1 * emailSender.withSubject(expectedSubject)
-        1 * emailSender.withMessage(expectedBody)
+        1 * emailSender.send({ EmailMessage message ->
+            message.subject == expectedSubject && message.body == expectedBody
+        })
 
         where:
         subject            | body            || expectedSubject   | expectedBody
@@ -96,21 +100,19 @@ class EmailServiceSpec extends Specification {
         String attachedName = null
 
         when:
-        service.setEmailWithAttachment(
+        service.sendEmailWithAttachment(
             '{"to":"ada@erudio.test","subject":"Report","body":"See the file"}',
             attachment('report.txt', 'the report'))
 
         then:
-        1 * emailSender.to('ada@erudio.test')
-        1 * emailSender.withSubject('Report')
-        1 * emailSender.withMessage('See the file')
-        1 * emailSender.attach(_ as String, _ as String) >> { String path, String name ->
-            attachedPath = Path.of(path)
-            attachedName = name
+        1 * emailSender.send(_ as EmailMessage) >> { EmailMessage message ->
+            assert message.to == 'ada@erudio.test'
+            assert message.subject == 'Report'
+            assert message.body == 'See the file'
+            attachedPath = message.attachment.toPath()
+            attachedName = message.attachmentName
             attachedContent = Files.readString(attachedPath)
-            emailSender
         }
-        1 * emailSender.send(emailConfig)
 
         attachedContent == 'the report'
         attachedName == 'report.txt'
@@ -120,17 +122,17 @@ class EmailServiceSpec extends Specification {
 
     def 'sendEmailWithAttachment falls back to the defaults when the request has no subject or body'() {
         when:
-        service.setEmailWithAttachment('{"to":"ada@erudio.test"}', attachment('a.txt', 'x'))
+        service.sendEmailWithAttachment('{"to":"ada@erudio.test"}', attachment('a.txt', 'x'))
 
         then:
-        1 * emailSender.withSubject(DEFAULT_SUBJECT)
-        1 * emailSender.withMessage(DEFAULT_MESSAGE)
-        1 * emailSender.send(emailConfig)
+        1 * emailSender.send({ EmailMessage message ->
+            message.subject == DEFAULT_SUBJECT && message.body == DEFAULT_MESSAGE
+        })
     }
 
     def 'sendEmailWithAttachment rejects #description'() {
         when:
-        service.setEmailWithAttachment(json, attachment('a.txt', 'x'))
+        service.sendEmailWithAttachment(json, attachment('a.txt', 'x'))
 
         then:
         def e = thrown(RuntimeException)
@@ -138,8 +140,8 @@ class EmailServiceSpec extends Specification {
         0 * emailSender._
 
         where:
-        description                | json
-        'an invalid JSON'          | '{not json'
+        description                  | json
+        'an invalid JSON'            | '{not json'
         'unknown fields in the JSON' | '{"to":"ada@erudio.test","cc":"bob@erudio.test"}'
     }
 
@@ -151,7 +153,7 @@ class EmailServiceSpec extends Specification {
         }
 
         when:
-        service.setEmailWithAttachment('{"to":"ada@erudio.test"}', broken)
+        service.sendEmailWithAttachment('{"to":"ada@erudio.test"}', broken)
 
         then:
         def e = thrown(RuntimeException)
@@ -165,14 +167,13 @@ class EmailServiceSpec extends Specification {
         Path attachedPath = null
 
         when:
-        service.setEmailWithAttachment('{"to":"ada@erudio.test"}', attachment('a.txt', 'x'))
+        service.sendEmailWithAttachment('{"to":"ada@erudio.test"}', attachment('a.txt', 'x'))
 
         then:
-        1 * emailSender.attach(_ as String, _ as String) >> { String path, String name ->
-            attachedPath = Path.of(path)
-            emailSender
+        1 * emailSender.send(_ as EmailMessage) >> { EmailMessage message ->
+            attachedPath = message.attachment.toPath()
+            throw new IllegalStateException('smtp down')
         }
-        1 * emailSender.send(_) >> { throw new IllegalStateException('smtp down') }
         def e = thrown(IllegalStateException)
         e.message == 'smtp down'
         attachedPath != null
@@ -180,7 +181,7 @@ class EmailServiceSpec extends Specification {
     }
 
     private static EmailRequestDTO request(String to, String subject, String body) {
-        new EmailRequestDTO(to: to, subject: subject, body: body)
+        new EmailRequestDTO(to, subject, body)
     }
 
     private static MultipartFile attachment(String name, String content) {

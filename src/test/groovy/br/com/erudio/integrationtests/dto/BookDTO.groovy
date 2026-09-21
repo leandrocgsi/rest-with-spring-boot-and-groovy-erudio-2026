@@ -11,7 +11,7 @@ import java.time.LocalDate
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @EqualsAndHashCode
-class BookDTO implements Serializable {
+class BookDTO {
 
     Long id
     String author

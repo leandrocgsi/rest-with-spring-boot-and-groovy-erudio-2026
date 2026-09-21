@@ -1,6 +1,10 @@
 package br.com.erudio.controllers
 
 import br.com.erudio.controllers.docs.PersonControllerDocs
+import br.com.erudio.controllers.mapping.ApiGet
+import br.com.erudio.controllers.mapping.ApiPatch
+import br.com.erudio.controllers.mapping.ApiPost
+import br.com.erudio.controllers.mapping.ApiPut
 import br.com.erudio.data.dto.PersonDTO
 import br.com.erudio.file.exporter.MediaTypes
 import br.com.erudio.services.PersonService
@@ -18,10 +22,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -46,7 +48,7 @@ class PersonController implements PersonControllerDocs {
 
     private final PersonService service
 
-    @GetMapping(produces = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE])
+    @ApiGet
     @Override
     ResponseEntity<PagedModel<EntityModel<PersonDTO>>> findAll(
             @RequestParam(value = 'page', defaultValue = '0') Integer page,
@@ -77,8 +79,7 @@ class PersonController implements PersonControllerDocs {
             .body(file)
     }
 
-    @GetMapping(value = '/findPeopleByName/{firstName}',
-        produces = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE])
+    @ApiGet('/findPeopleByName/{firstName}')
     @Override
     ResponseEntity<PagedModel<EntityModel<PersonDTO>>> findByName(
             @PathVariable('firstName') String firstName,
@@ -88,8 +89,7 @@ class PersonController implements PersonControllerDocs {
         ResponseEntity.ok(service.findByName(firstName, pageableOf(page, size, direction)))
     }
 
-    @GetMapping(value = '/{id}',
-        produces = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE])
+    @ApiGet('/{id}')
     @Override
     PersonDTO findById(@PathVariable('id') Long id) {
         service.findById(id)
@@ -107,9 +107,7 @@ class PersonController implements PersonControllerDocs {
             .body(file)
     }
 
-    @PostMapping(
-        consumes = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE],
-        produces = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE])
+    @ApiPost
     @Override
     PersonDTO create(@RequestBody PersonDTO person) {
         service.create(person)
@@ -122,16 +120,13 @@ class PersonController implements PersonControllerDocs {
         service.massCreation(file)
     }
 
-    @PutMapping(
-        consumes = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE],
-        produces = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE])
+    @ApiPut
     @Override
     PersonDTO update(@RequestBody PersonDTO person) {
         service.update(person)
     }
 
-    @PatchMapping(value = '/{id}',
-        produces = [APPLICATION_JSON_VALUE, APPLICATION_XML_VALUE, APPLICATION_YAML_VALUE])
+    @ApiPatch('/{id}')
     @Override
     PersonDTO disablePerson(@PathVariable('id') Long id) {
         service.disablePerson(id)
