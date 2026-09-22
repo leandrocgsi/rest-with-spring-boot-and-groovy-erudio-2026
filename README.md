@@ -1,4 +1,4 @@
-# rest-with-spring-boot-and-groovy-erudio-2026
+# REST API RESTful com Spring Boot, Groovy e Java Erudio 2026
 ### API REST com Spring Boot 4, Groovy 5 e Java 25: autenticação JWT, HATEOAS, upload e download de arquivos, importação e exportação em CSV, XLSX e PDF, e envio de e-mails
 
 [![Continuous Integration and Delivery with Github Actions](https://github.com/leandrocgsi/rest-with-spring-boot-and-groovy-erudio-2026/actions/workflows/continuous-deployment.yml/badge.svg)](https://github.com/leandrocgsi/rest-with-spring-boot-and-groovy-erudio-2026/actions/workflows/continuous-deployment.yml)
@@ -7,7 +7,8 @@
 ![Stars](https://img.shields.io/github/stars/leandrocgsi/rest-with-spring-boot-and-groovy-erudio-2026)
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=ZJ4NQJXEKQ63A)
 
-Este é o repositório de uma API REST escrita em **Groovy**, com Spring Boot 4 e Java 25, usando as práticas da linguagem (`@CompileStatic`, propriedades, AST transformations, closures, records) e testada com Spock.
+Este é o repositório de uma API REST escrita em **Groovy**, com Spring Boot 4 e Java 25, usando as práticas da linguagem
+(`@CompileStatic`, propriedades, AST transformations, closures, records) e testada com Spock.
 
 # Cursos Relacionados
 
@@ -59,7 +60,21 @@ Este é o repositório de uma API REST escrita em **Groovy**, com Spring Boot 4 
 
 [![Como Configurar Ambiente de DEV Spring Boot no Linux: Java, Maven, IntelliJ e MySQL Guia Completo](https://img.youtube.com/vi/Wk5645fHrVU/maxresdefault.jpg)](https://www.youtube.com/watch?v=Wk5645fHrVU)
 
-# Como rodar
+## O que a API faz
+
+| Área | Endpoints |
+|---|---|
+| Auth | `POST /auth/signin`, `PUT /auth/refresh/{username}`, `POST /auth/createUser` (JWT, hashes PBKDF2) |
+| People | `GET/POST/PUT /api/person/v1`, `GET/PATCH/DELETE /api/person/v1/{id}`, `GET /api/person/v1/findPeopleByName/{name}`, `POST /api/person/v1/massCreation` (CSV ou XLSX), `GET /api/person/v1/exportPage` (CSV, XLSX ou PDF) |
+| Books | `GET/POST/PUT /api/book/v1`, `GET/DELETE /api/book/v1/{id}` |
+| Files | `POST /api/file/v1/uploadFile`, `POST /api/file/v1/uploadMultipleFiles`, `GET /api/file/v1/downloadFile/{name}` |
+| e-Mail | `POST /api/email/v1`, `POST /api/email/v1/withAttachment` |
+| Outros | `GET /api/test/v1` (um log por nível), Swagger UI, documento Swagger 2.0 |
+
+Tudo em `/api` exige `Authorization: Bearer <accessToken>`. Os endpoints de dados leem e escrevem JSON (HAL), XML e YAML,
+de acordo com `Content-Type` e `Accept`. Relatórios em PDF são gerados com JasperReports.
+
+## Como rodar
 
 Pré-requisitos: JDK 25 e Docker.
 
@@ -71,9 +86,44 @@ Pré-requisitos: JDK 25 e Docker.
 docker compose up -d --build              # API na 8080 e MySQL 9 na 3308 (rode ./gradlew clean bootJar antes)
 ```
 
-Swagger UI: `http://localhost:8080/swagger-ui/index.html`. Login do seed: `leandro` / `admin123`.
+Swagger UI: `http://localhost:8080/swagger-ui/index.html` · Documento Swagger: `http://localhost:8080/v3/api-docs`
 
-A collection do Postman e as instruções para rodá-la com o newman estão em [`Collections/`](Collections/README.md). O [`CLAUDE.md`](CLAUDE.md) descreve a arquitetura, as decisões de design em Groovy e as armadilhas conhecidas.
+Login do seed: `leandro` / `admin123`.
+
+### Configuração
+
+*A preencher: variáveis de ambiente / `application.yml` usados pelo projeto.*
+
+## Testes
+
+```bash
+./gradlew test                            # sobe MySQL com Testcontainers (precisa de Docker)
+./gradlew test --tests '*PersonServiceSpec'
+./gradlew jacocoTestReport                # relatório de cobertura
+```
+
+Os testes são escritos com **Spock** e sobem um MySQL real via Testcontainers para os testes de integração.
+
+### Contra a stack em execução
+
+```bash
+docker compose up -d --build
+
+# Collection do Postman: veja Collections/README.md
+npx --yes newman@6.2.2 run Collections/erudio.postman_collection.json \
+  -e Collections/GROOVY_ERUDIO.postman_environment.json --working-dir Collections
+```
+
+## Banco de dados
+
+*A preencher: ferramenta de migration usada e detalhes do schema.*
+
+## Estrutura
+
+*A preencher: árvore de pastas real do projeto.*
+
+A collection do Postman e as instruções para rodá-la com o newman estão em [`Collections/`](Collections/README.md).
+O [`CLAUDE.md`](CLAUDE.md) descreve a arquitetura, as decisões de design em Groovy e as armadilhas conhecidas.
 
 # Sobre REST
 
