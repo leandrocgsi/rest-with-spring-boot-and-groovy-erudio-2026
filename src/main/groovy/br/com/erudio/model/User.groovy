@@ -33,16 +33,16 @@ class User implements UserDetails {
     String password
 
     @Column(name = 'account_non_expired')
-    Boolean accountNonExpired
+    boolean accountNonExpired
 
     @Column(name = 'account_non_locked')
-    Boolean accountNonLocked
+    boolean accountNonLocked
 
     @Column(name = 'credentials_non_expired')
-    Boolean credentialsNonExpired
+    boolean credentialsNonExpired
 
     @Column
-    Boolean enabled
+    boolean enabled
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = 'user_permission',
@@ -52,7 +52,7 @@ class User implements UserDetails {
     List<Permission> permissions
 
     List<String> getRoles() {
-        permissions.collect { Permission permission -> permission.description }
+        permissions*.description
     }
 
     @Override
@@ -63,25 +63,5 @@ class User implements UserDetails {
     @Override
     String getUsername() {
         userName
-    }
-
-    @Override
-    boolean isAccountNonExpired() {
-        accountNonExpired
-    }
-
-    @Override
-    boolean isAccountNonLocked() {
-        accountNonLocked
-    }
-
-    @Override
-    boolean isCredentialsNonExpired() {
-        credentialsNonExpired
-    }
-
-    @Override
-    boolean isEnabled() {
-        enabled
     }
 }

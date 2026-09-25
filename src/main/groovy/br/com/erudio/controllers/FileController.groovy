@@ -43,7 +43,7 @@ class FileController implements FileControllerDocs {
     @PostMapping('/uploadMultipleFiles')
     @Override
     List<UploadFileResponseDTO> uploadMultipleFiles(@RequestParam('files') MultipartFile[] files) {
-        files.collect { MultipartFile file -> uploadFile(file) }
+        files.collect { uploadFile(it) }
     }
 
     @GetMapping('/downloadFile/{fileName:.+}')

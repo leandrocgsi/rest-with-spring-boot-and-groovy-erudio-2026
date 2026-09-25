@@ -31,10 +31,10 @@ class BookService {
     PagedModel<EntityModel<BookDTO>> findAll(Pageable pageable) {
         log.info('Finding all Book!')
 
-        Page<BookDTO> booksWithLinks = repository.findAll(pageable).map { Book book -> toDto(book) }
+        Page<BookDTO> booksWithLinks = repository.findAll(pageable).map { toDto(it) }
 
         Link findAllLink = linkTo(methodOn(BookController)
-            .findAll(pageable.pageNumber, pageable.pageSize, String.valueOf(pageable.sort)))
+            .findAll(pageable.pageNumber, pageable.pageSize, pageable.sort.toString()))
             .withSelfRel()
         assembler.toModel(booksWithLinks, findAllLink)
     }

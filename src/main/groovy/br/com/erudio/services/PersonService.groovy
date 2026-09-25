@@ -53,7 +53,7 @@ class PersonService {
         log.info('Exporting a People page!')
 
         List<PersonDTO> people = repository.findAll(pageable).content
-            .collect { Person person -> parseObject(person, PersonDTO) }
+            .collect { parseObject(it, PersonDTO) }
 
         try {
             exporter.getExporter(acceptHeader).exportPeople(people)
@@ -93,14 +93,14 @@ class PersonService {
         if (file.empty) throw new BadRequestException('Please set a Valid File!')
 
         try {
-            file.inputStream.withCloseable { InputStream inputStream ->
+            file.inputStream.withCloseable { inputStream ->
                 String filename = file.originalFilename
                 if (filename == null) throw new BadRequestException('File name cannot be null')
 
                 List<Person> entities = importer.getImporter(filename).importFile(inputStream)
-                    .collect { PersonDTO dto -> repository.save(parseObject(dto, Person)) }
+                    .collect { repository.save(parseObject(it, Person)) }
 
-                entities.collect { Person entity -> toDto(entity) }
+                entities.collect { toDto(it) }
             }
         } catch (Exception ignored) {
             throw new FileStorageException('Error processing the file!')
@@ -142,10 +142,10 @@ class PersonService {
     }
 
     private PagedModel<EntityModel<PersonDTO>> buildPagedModel(Pageable pageable, Page<Person> people) {
-        Page<PersonDTO> peopleWithLinks = people.map { Person person -> toDto(person) }
+        Page<PersonDTO> peopleWithLinks = people.map { toDto(it) }
 
         Link findAllLink = linkTo(methodOn(PersonController)
-            .findAll(pageable.pageNumber, pageable.pageSize, String.valueOf(pageable.sort)))
+            .findAll(pageable.pageNumber, pageable.pageSize, pageable.sort.toString()))
             .withSelfRel()
         assembler.toModel(peopleWithLinks, findAllLink)
     }

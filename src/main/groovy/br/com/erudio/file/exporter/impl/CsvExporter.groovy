@@ -23,8 +23,8 @@ class CsvExporter implements PersonExporter {
             .setSkipHeaderRecord(false)
             .get()
 
-        new CSVPrinter(writer, csvFormat).withCloseable { CSVPrinter csvPrinter ->
-            people.each { PersonDTO person ->
+        new CSVPrinter(writer, csvFormat).withCloseable { csvPrinter ->
+            people.each { person ->
                 csvPrinter.printRecord(
                     person.id,
                     person.firstName,

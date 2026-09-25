@@ -15,14 +15,12 @@ class FileImporterFactory {
     private static final Map<String, Class<? extends FileImporter>> IMPORTERS = [
         '.xlsx': XlsxImporter,
         '.csv' : CsvImporter
-    ]
+    ].asImmutable()
 
     private final ApplicationContext context
 
     FileImporter getImporter(String fileName) {
-        Class<? extends FileImporter> importer = IMPORTERS.find { String extension, Class<? extends FileImporter> type ->
-            fileName.endsWith(extension)
-        }?.value
+        Class<? extends FileImporter> importer = IMPORTERS.find { fileName.endsWith(it.key) }?.value
 
         if (importer == null) throw new BadRequestException('Invalid File Format!')
         context.getBean(importer)

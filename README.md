@@ -69,7 +69,7 @@ Este é o repositório de uma API REST escrita em **Groovy**, com Spring Boot 4 
 | Books | `GET/POST/PUT /api/book/v1`, `GET/DELETE /api/book/v1/{id}` |
 | Files | `POST /api/file/v1/uploadFile`, `POST /api/file/v1/uploadMultipleFiles`, `GET /api/file/v1/downloadFile/{name}` |
 | e-Mail | `POST /api/email/v1`, `POST /api/email/v1/withAttachment` |
-| Outros | `GET /api/test/v1` (um log por nível), Swagger UI, documento Swagger 2.0 |
+| Outros | `GET /api/test/v1` (um log por nível), Swagger UI, documento OpenAPI 3.1 |
 
 Tudo em `/api` exige `Authorization: Bearer <accessToken>`. Os endpoints de dados leem e escrevem JSON (HAL), XML e YAML,
 de acordo com `Content-Type` e `Accept`. Relatórios em PDF são gerados com JasperReports.
@@ -86,7 +86,7 @@ Pré-requisitos: JDK 25 e Docker.
 docker compose up -d --build              # API na 8080 e MySQL 9 na 3308 (rode ./gradlew clean bootJar antes)
 ```
 
-Swagger UI: `http://localhost:8080/swagger-ui/index.html` · Documento Swagger: `http://localhost:8080/v3/api-docs`
+Swagger UI: `http://localhost:8080/swagger-ui/index.html` · Documento OpenAPI: `http://localhost:8080/v3/api-docs`
 
 Login do seed: `leandro` / `admin123`.
 
@@ -99,7 +99,7 @@ Login do seed: `leandro` / `admin123`.
 ```bash
 ./gradlew test                            # sobe MySQL com Testcontainers (precisa de Docker)
 ./gradlew test --tests '*PersonServiceSpec'
-./gradlew jacocoTestReport                # relatório de cobertura
+./gradlew test --tests 'br.com.erudio.unittests.*'   # só os testes unitários, sem Docker
 ```
 
 Os testes são escritos com **Spock** e sobem um MySQL real via Testcontainers para os testes de integração.
@@ -110,8 +110,8 @@ Os testes são escritos com **Spock** e sobem um MySQL real via Testcontainers p
 docker compose up -d --build
 
 # Collection do Postman: veja Collections/README.md
-npx --yes newman@6.2.2 run Collections/erudio.postman_collection.json \
-  -e Collections/GROOVY_ERUDIO.postman_environment.json --working-dir Collections
+npx --yes newman@6.2.2 run Collections/*.postman_collection.json \
+  -e Collections/SPRING_BOOT_GROOVY_ERUDIO.postman_environment.json --working-dir Collections
 ```
 
 ## Banco de dados

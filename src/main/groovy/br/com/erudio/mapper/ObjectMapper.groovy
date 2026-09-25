@@ -13,6 +13,6 @@ final class ObjectMapper {
     }
 
     static <O, D> List<D> parseListObjects(List<O> origin, Class<D> destination) {
-        origin.collect { O item -> parseObject(item, destination) }
+        origin.collect { parseObject(it, destination) }
     }
 }

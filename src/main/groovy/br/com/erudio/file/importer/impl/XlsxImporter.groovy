@@ -13,11 +13,11 @@ class XlsxImporter implements FileImporter {
 
     @Override
     List<PersonDTO> importFile(InputStream inputStream) {
-        new XSSFWorkbook(inputStream).withCloseable { XSSFWorkbook workbook ->
+        new XSSFWorkbook(inputStream).withCloseable { workbook ->
             workbook.getSheetAt(0).toList()
                 .drop(1)
-                .findAll { Row row -> isRowValid(row) }
-                .collect { Row row -> parseRowToPersonDto(row) }
+                .findAll { isRowValid(it) }
+                .collect { parseRowToPersonDto(it) }
         }
     }
 

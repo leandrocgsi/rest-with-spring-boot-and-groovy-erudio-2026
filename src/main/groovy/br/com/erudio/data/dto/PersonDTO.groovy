@@ -25,6 +25,6 @@ class PersonDTO extends RepresentationModel<PersonDTO> {
 
     @JsonIgnore
     String getName() {
-        (firstName != null ? firstName : '') + (lastName != null ? " $lastName" : '')
+        [firstName, lastName].findAll().join(' ')
     }
 }

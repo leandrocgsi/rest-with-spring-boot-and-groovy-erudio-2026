@@ -20,18 +20,18 @@ class XlsxExporter implements PersonExporter {
 
     @Override
     Resource exportPeople(List<PersonDTO> people) {
-        new XSSFWorkbook().withCloseable { Workbook workbook ->
+        new XSSFWorkbook().withCloseable { workbook ->
             Sheet sheet = workbook.createSheet('People')
 
             Row headerRow = sheet.createRow(0)
             CellStyle headerStyle = createHeaderCellStyle(workbook)
-            HEADERS.eachWithIndex { String header, int column ->
+            HEADERS.eachWithIndex { header, column ->
                 def cell = headerRow.createCell(column)
                 cell.setCellValue(header)
                 cell.cellStyle = headerStyle
             }
 
-            people.eachWithIndex { PersonDTO person, int index ->
+            people.eachWithIndex { person, index ->
                 Row row = sheet.createRow(index + 1)
                 row.createCell(0).setCellValue(person.id as double)
                 row.createCell(1).setCellValue(person.firstName)
@@ -41,7 +41,7 @@ class XlsxExporter implements PersonExporter {
                 row.createCell(5).setCellValue(person.enabled ? 'Yes' : 'No')
             }
 
-            HEADERS.indices.each { int column -> sheet.autoSizeColumn(column) }
+            HEADERS.indices.each { sheet.autoSizeColumn(it) }
 
             def outputStream = new ByteArrayOutputStream()
             workbook.write(outputStream)

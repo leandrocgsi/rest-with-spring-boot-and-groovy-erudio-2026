@@ -2,6 +2,7 @@ package br.com.erudio.config
 
 import br.com.erudio.security.jwt.JwtTokenFilter
 import br.com.erudio.security.jwt.JwtTokenProvider
+import groovy.transform.TupleConstructor
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -18,13 +19,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @EnableWebSecurity
 @Configuration
+@TupleConstructor(includeFields = true, defaults = false)
 class SecurityConfig {
 
     private final JwtTokenProvider tokenProvider
-
-    SecurityConfig(JwtTokenProvider tokenProvider) {
-        this.tokenProvider = tokenProvider
-    }
 
     static PasswordEncoder createPasswordEncoder() {
         PasswordEncoder pbkdf2Encoder = new Pbkdf2PasswordEncoder(

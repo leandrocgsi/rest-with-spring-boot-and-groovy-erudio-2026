@@ -44,7 +44,7 @@ class EmailSender {
     }
 
     private static List<InternetAddress> recipientsOf(String to) {
-        to.replaceAll(/\s/, '').tokenize(';').collect { String address ->
+        to.replaceAll(/\s/, '').tokenize(';').collect { address ->
             try {
                 new InternetAddress(address)
             } catch (AddressException e) {

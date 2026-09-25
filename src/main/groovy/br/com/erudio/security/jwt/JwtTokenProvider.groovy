@@ -6,6 +6,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
+import groovy.transform.TupleConstructor
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 
 @Service
+@TupleConstructor(includeFields = true, defaults = false, includes = 'userDetailsService')
 class JwtTokenProvider {
 
     private static final String BEARER_PREFIX = 'Bearer '
@@ -29,10 +31,6 @@ class JwtTokenProvider {
 
     private final UserDetailsService userDetailsService
     private Algorithm algorithm
-
-    JwtTokenProvider(UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService
-    }
 
     @PostConstruct
     protected void init() {

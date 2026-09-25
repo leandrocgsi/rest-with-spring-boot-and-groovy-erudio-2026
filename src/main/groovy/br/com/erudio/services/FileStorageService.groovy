@@ -45,9 +45,7 @@ class FileStorageService {
             log.info('Saving file in Disk')
 
             Path targetLocation = fileStorageLocation.resolve(fileName)
-            file.inputStream.withCloseable { InputStream input ->
-                Files.copy(input, targetLocation, StandardCopyOption.REPLACE_EXISTING)
-            }
+            file.inputStream.withCloseable { Files.copy(it, targetLocation, StandardCopyOption.REPLACE_EXISTING) }
             fileName
         } catch (Exception e) {
             log.error("Could not store file $fileName. Please try Again!")

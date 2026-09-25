@@ -18,14 +18,12 @@ class FileExporterFactory {
         (MediaTypes.APPLICATION_XLSX_VALUE): XlsxExporter,
         (MediaTypes.APPLICATION_CSV_VALUE) : CsvExporter,
         (MediaTypes.APPLICATION_PDF_VALUE) : PdfExporter
-    ]
+    ].asImmutable()
 
     private final ApplicationContext context
 
     PersonExporter getExporter(String acceptHeader) {
-        Class<? extends PersonExporter> exporter = EXPORTERS.find { String mediaType, Class<? extends PersonExporter> type ->
-            mediaType.equalsIgnoreCase(acceptHeader)
-        }?.value
+        Class<? extends PersonExporter> exporter = EXPORTERS.find { it.key.equalsIgnoreCase(acceptHeader) }?.value
 
         if (exporter == null) throw new BadRequestException('Invalid File Format!')
         context.getBean(exporter)
