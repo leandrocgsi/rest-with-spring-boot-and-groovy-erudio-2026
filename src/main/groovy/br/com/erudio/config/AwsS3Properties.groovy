@@ -4,8 +4,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ConfigurationProperties(prefix = 'file')
-class FileStorageConfig {
+@ConfigurationProperties(prefix = 'aws.s3')
+class AwsS3Properties {
 
-    String uploadDir
+    String bucket
+    String region
+    String endpoint
+    String accessKey
+    String secretKey
 }

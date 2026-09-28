@@ -1,35 +1,46 @@
 package br.com.erudio.services
 
-import br.com.erudio.config.FileStorageConfig
+import br.com.erudio.config.AwsS3Properties
 import br.com.erudio.exception.FileNotFoundException
 import br.com.erudio.exception.FileStorageException
 import groovy.util.logging.Slf4j
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
-import org.springframework.core.io.UrlResource
 import org.springframework.stereotype.Service
 import org.springframework.util.StringUtils
 import org.springframework.web.multipart.MultipartFile
-
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 @Slf4j
 @Service
 class FileStorageService {
 
-    private final Path fileStorageLocation
+    private final S3Client s3Client
+    private final String bucket
 
-    FileStorageService(FileStorageConfig fileStorageConfig) {
-        fileStorageLocation = Paths.get(fileStorageConfig.uploadDir).toAbsolutePath().normalize()
+    FileStorageService(S3Client s3Client, AwsS3Properties properties) {
+        this.s3Client = s3Client
+        this.bucket = properties.bucket
+        createBucketIfMissing()
+    }
 
+    private void createBucketIfMissing() {
         try {
-            log.info('Creating Directories')
-            Files.createDirectories(fileStorageLocation)
+            try {
+                s3Client.headBucket(HeadBucketRequest.builder().bucket(bucket).build())
+            } catch (NoSuchBucketException e) {
+                log.info("Creating S3 bucket $bucket")
+                s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build())
+            }
         } catch (Exception e) {
-            log.error('Could not create the directory where files will be stored!')
-            throw new FileStorageException('Could not create the directory where files will be stored!', e)
+            log.error('Could not verify or create the S3 bucket where files will be stored!')
+            throw new FileStorageException('Could not verify or create the S3 bucket where files will be stored!', e)
         }
     }
 
@@ -42,10 +53,15 @@ class FileStorageService {
                 throw new FileStorageException("Sorry! Filename Contains a Invalid path Sequence $fileName")
             }
 
-            log.info('Saving file in Disk')
+            log.info('Saving file in S3')
 
-            Path targetLocation = fileStorageLocation.resolve(fileName)
-            file.inputStream.withCloseable { Files.copy(it, targetLocation, StandardCopyOption.REPLACE_EXISTING) }
+            PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(fileName)
+                .contentType(file.contentType)
+                .build()
+
+            s3Client.putObject(request, RequestBody.fromBytes(file.bytes))
             fileName
         } catch (Exception e) {
             log.error("Could not store file $fileName. Please try Again!")
@@ -55,14 +71,25 @@ class FileStorageService {
 
     Resource loadFileAsResource(String fileName) {
         try {
-            Path filePath = fileStorageLocation.resolve(fileName).normalize()
-            Resource resource = new UrlResource(filePath.toUri())
-            if (resource.exists()) {
-                return resource
-            }
+            byte[] content = s3Client.getObjectAsBytes(
+                GetObjectRequest.builder().bucket(bucket).key(fileName).build()).asByteArray()
 
-            log.error("File not found $fileName")
-            throw new FileNotFoundException("File not found $fileName")
+            new ByteArrayResource(content) {
+                @Override
+                String getFilename() {
+                    fileName
+                }
+
+                @Override
+                File getFile() {
+                    new File(fileName)
+                }
+
+                @Override
+                boolean exists() {
+                    true
+                }
+            }
         } catch (Exception e) {
             log.error("File not found $fileName")
             throw new FileNotFoundException("File not found $fileName", e)

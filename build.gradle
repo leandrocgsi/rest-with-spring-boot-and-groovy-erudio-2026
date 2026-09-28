@@ -55,6 +55,7 @@ dependencies {
     implementation "net.sf.jasperreports:jasperreports-jdt:${jasperreportsVersion}"
     implementation "com.google.zxing:core:${zxingVersion}"
     implementation "com.google.zxing:javase:${zxingVersion}"
+    implementation "software.amazon.awssdk:s3:${awsSdkVersion}"
 
     runtimeOnly 'com.mysql:mysql-connector-j'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
@@ -69,6 +70,7 @@ dependencies {
     testImplementation 'net.bytebuddy:byte-buddy'
     testImplementation "org.objenesis:objenesis:${objenesisVersion}"
     testImplementation 'org.testcontainers:testcontainers-mysql'
+    testImplementation 'org.testcontainers:testcontainers-localstack'
     testImplementation("com.icegreen:greenmail:${greenmailVersion}") {
         exclude group: 'org.eclipse.angus', module: 'jakarta.mail'
     }

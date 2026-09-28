@@ -2,9 +2,6 @@ package br.com.erudio.integrationtests.controllers.file
 
 import br.com.erudio.integrationtests.AuthenticatedIntegrationSpec
 
-import java.nio.file.Files
-import java.nio.file.Path
-
 import static io.restassured.RestAssured.given
 import static java.nio.charset.StandardCharsets.UTF_8
 import static org.hamcrest.Matchers.contains
@@ -162,7 +159,11 @@ class FileControllerSpec extends AuthenticatedIntegrationSpec {
             .body('message', equalTo("Could not store file $name. Please try Again!".toString()))
 
         then:
-        !Files.exists(Path.of('build', "escaped-${tag}.txt"))
+        given().spec(authenticated())
+        .when()
+            .get("$BASE/downloadFile/escaped-${tag}.txt")
+        .then()
+            .statusCode(404)
     }
 
     def 'upload without the file part is a bad request'() {

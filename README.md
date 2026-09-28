@@ -2,7 +2,7 @@
 ### API REST com Spring Boot 4, Groovy 5 e Java 25: autenticação JWT, HATEOAS, upload e download de arquivos, importação e exportação em CSV, XLSX e PDF, e envio de e-mails
 
 [![Continuous Integration and Delivery with Github Actions](https://github.com/leandrocgsi/rest-with-spring-boot-and-groovy-erudio-2026/actions/workflows/continuous-deployment.yml/badge.svg)](https://github.com/leandrocgsi/rest-with-spring-boot-and-groovy-erudio-2026/actions/workflows/continuous-deployment.yml)
-[![Docker Hub Repo](https://img.shields.io/docker/pulls/leandrocgsi/rest-with-spring-boot-groovy-erudio.svg)](https://hub.docker.com/repository/docker/leandrocgsi/rest-with-spring-boot-groovy-erudio)
+[![Docker Hub Repo](https://img.shields.io/docker/pulls/leandrocgsi/rest-with-spring-boot-and-groovy-erudio.svg)](https://hub.docker.com/repository/docker/leandrocgsi/rest-with-spring-boot-and-groovy-erudio)
 ![Forks](https://img.shields.io/github/forks/leandrocgsi/rest-with-spring-boot-and-groovy-erudio-2026)
 ![Stars](https://img.shields.io/github/stars/leandrocgsi/rest-with-spring-boot-and-groovy-erudio-2026)
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=ZJ4NQJXEKQ63A)

@@ -62,8 +62,8 @@ jobs:
 
     - name: Push to Docker Hub
       run: |
-        docker tag ${{ secrets.DOCKER_USERNAME }}/rest-with-spring-boot-groovy-erudio:latest \
-                   ${{ secrets.DOCKER_USERNAME }}/rest-with-spring-boot-groovy-erudio:${{ github.run_id }}
+        docker tag ${{ secrets.DOCKER_USERNAME }}/rest-with-spring-boot-and-groovy-erudio:latest \
+                   ${{ secrets.DOCKER_USERNAME }}/rest-with-spring-boot-and-groovy-erudio:${{ github.run_id }}
 
-        docker push ${{ secrets.DOCKER_USERNAME }}/rest-with-spring-boot-groovy-erudio:latest
-        docker push ${{ secrets.DOCKER_USERNAME }}/rest-with-spring-boot-groovy-erudio:${{ github.run_id }}
+        docker push ${{ secrets.DOCKER_USERNAME }}/rest-with-spring-boot-and-groovy-erudio:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/rest-with-spring-boot-and-groovy-erudio:${{ github.run_id }}
